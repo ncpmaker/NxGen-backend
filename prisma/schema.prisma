@@ -1,0 +1,92 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model Users {
+  id                    String                @id @default(uuid())
+  email                 String                @unique
+  password              String
+  name                  String
+  section               String
+  finished_pre_test     Boolean               @default(false)
+  finished_post_test    Boolean               @default(false)
+  finished_intro        Boolean               @default(false)
+  approved              Boolean               @default(false)
+  tokens                Tokens[]
+  case_scenario_history CaseScenarioHistory[]
+  test_history          TestHistory[]
+}
+
+model EnablePostTest {
+  id Int     @id @default(autoincrement())
+  A1 Boolean @default(false)
+  B1 Boolean @default(false)
+  C1 Boolean @default(false)
+  D1 Boolean @default(false)
+}
+
+model Tokens {
+  id      Int    @id @default(autoincrement())
+  token   String @unique
+  user_id String
+  user    Users  @relation(fields: [user_id], references: [id], onDelete: Cascade)
+}
+
+model AdminTokens {
+  id    Int    @id @default(autoincrement())
+  token String @unique
+}
+
+model TestHistory {
+  id         String   @id @default(uuid())
+  user_id    String
+  answers    Json
+  score      String
+  test_type  TestType
+  date_taken DateTime @default(now())
+  user       Users    @relation(fields: [user_id], references: [id], onDelete: Cascade)
+}
+
+enum TestType {
+  PRETEST
+  POSTTEST
+}
+
+model CaseScenarios {
+  id                    String                @id @default(uuid())
+  category              String
+  scenario              String
+  image_link            String?
+  audio_link            String?
+  assessment            Json
+  nursing_diagnosis     Json
+  planning              Json
+  intervention          Json
+  created_at            DateTime              @default(now())
+  case_scenario_history CaseScenarioHistory[]
+}
+
+model CaseScenarioHistory {
+  id                      String        @id @default(uuid())
+  user_id                 String
+  case_id                 String
+  times_taken             Int           @default(1)
+  date_taken              DateTime      @default(now())
+  answers                 Json
+  assessment_score        Float
+  nursing_diagnosis_score Float
+  planning_score          Float
+  intervention_score      Float
+  evaluation_score        Float
+  overall_score           Float
+  user                    Users         @relation(fields: [user_id], references: [id], onDelete: Cascade)
+  case_scenarios          CaseScenarios @relation(fields: [case_id], references: [id], onDelete: Cascade)
+}
