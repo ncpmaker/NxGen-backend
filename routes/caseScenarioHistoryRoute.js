@@ -164,27 +164,29 @@ router.post('/search', async (req, res) => {
     ]
   }
 
+  const select = {
+    id: true,
+    date_taken: true,
+    times_taken: true,
+    user: {
+      select: {
+        name: true,
+        section: true
+      }
+    },
+    case_scenarios: {
+      select: {
+        id: true,
+        category: true
+      }
+    }
+  }
+
   if (req.body.cursor !== null) {
     await prisma.caseScenarioHistory
       .findMany({
         where: searchFilter,
-        select: {
-          id: true,
-          date_taken: true,
-          times_taken: true,
-          user: {
-            select: {
-              name: true,
-              section: true
-            }
-          },
-          case_scenarios: {
-            select: {
-              id: true,
-              category: true
-            }
-          }
-        },
+        select: select,
         orderBy: {
           date_taken: 'desc'
         },
@@ -215,23 +217,7 @@ router.post('/search', async (req, res) => {
     await prisma.caseScenarioHistory
       .findMany({
         where: searchFilter,
-        select: {
-          id: true,
-          date_taken: true,
-          times_taken: true,
-          user: {
-            select: {
-              name: true,
-              section: true
-            }
-          },
-          case_scenarios: {
-            select: {
-              id: true,
-              category: true
-            }
-          }
-        },
+        select: select,
         orderBy: {
           date_taken: 'desc'
         },

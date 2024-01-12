@@ -5,7 +5,7 @@ const router = express.Router()
 const prisma = new PrismaClient()
 
 router.post('/student', async (req, res) => {
-  if (req.body.userId !== undefined || req.get('Authorization') !== undefined) {
+  if (req.body.userId !== null || req.get('Authorization') !== null) {
     await prisma.tokens
       .findUnique({
         where: {

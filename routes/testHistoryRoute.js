@@ -37,6 +37,21 @@ router.post('/create', async (req, res) => {
     .catch((err) => res.status(500).send(err))
 })
 
+router.get('/:userId', async (req, res) => {
+  await prisma.testHistory
+    .findMany({
+      where: {
+        user_id: req.params.userId
+      },
+      select: {
+        test_type: true,
+        score: true
+      }
+    })
+    .then((data) => res.status(200).send(data))
+    .catch((err) => res.status(500).send(err))
+})
+
 router.post('/search', async (req, res) => {
   const searchFilter = {
     AND: [
