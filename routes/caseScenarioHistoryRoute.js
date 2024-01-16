@@ -131,12 +131,23 @@ router.post('/search', async (req, res) => {
   const searchFilter = {
     AND: [
       {
-        user: {
-          name: {
-            contains: req.body.search,
-            mode: 'insensitive'
+        OR: [
+          {
+            user: {
+              name: {
+                contains: req.body.search,
+                mode: 'insensitive'
+              }
+            }
+          },
+          {
+            case_scenarios: {
+              id: {
+                contains: req.body.search
+              }
+            }
           }
-        }
+        ]
       },
       {
         user: {
