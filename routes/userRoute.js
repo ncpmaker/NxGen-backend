@@ -9,7 +9,7 @@ const prisma = new PrismaClient()
 
 // create account
 router.post('/create', async (req, res) => {
-  bcrypt.hash(req.body.password, saltRounds).then(async (hash) => {
+  bcrypt.hash(req.body.password, saltRounds).then(async hash => {
     await prisma.users
       .create({
         data: {
@@ -25,7 +25,7 @@ router.post('/create', async (req, res) => {
           message: 'Successfully created an account!'
         })
       })
-      .catch((err) => {
+      .catch(err => {
         if (err instanceof Prisma.PrismaClientKnownRequestError) {
           if (err.code === 'P2002') {
             res.status(409).send(err)
@@ -47,6 +47,7 @@ router.post('/login', async (req, res) => {
       },
       select: {
         id: true,
+        email: true,
         password: true,
         approved: true,
         finished_pre_test: true,
@@ -55,10 +56,10 @@ router.post('/login', async (req, res) => {
         section: true
       }
     })
-    .then(async (user) => {
+    .then(async user => {
       if (user !== null) {
         // if user exists
-        bcrypt.compare(req.body.password, user.password).then(async (result) => {
+        bcrypt.compare(req.body.password, user.password).then(async result => {
           if (result) {
             if (user.approved) {
               const token = crypto.randomBytes(64).toString('hex')
@@ -73,6 +74,7 @@ router.post('/login', async (req, res) => {
                 .then(() => {
                   res.status(200).json({
                     userId: user.id,
+                    email: user.email,
                     token: token,
                     finishedPreTest: user.finished_pre_test,
                     finishedPostTest: user.finished_post_test,
@@ -80,7 +82,7 @@ router.post('/login', async (req, res) => {
                     section: user.section
                   })
                 })
-                .catch((err) => res.status(500).send(err))
+                .catch(err => res.status(500).send(err))
             } else {
               res.status(401).json({
                 message: 'Account not yet approved'
@@ -98,7 +100,7 @@ router.post('/login', async (req, res) => {
         })
       }
     })
-    .catch((err) => res.status(500).send(err))
+    .catch(err => res.status(500).send(err))
 })
 
 //delete token on logout
@@ -110,7 +112,7 @@ router.delete('/logout', async (req, res) => {
       }
     })
     .then(() => res.status(200).send('Token deleted'))
-    .catch((err) => res.status(400).send(err))
+    .catch(err => res.status(400).send(err))
 })
 
 //get user details
@@ -121,22 +123,62 @@ router.get('/get-user/:id', async (req, res) => {
         id: req.params.id
       }
     })
-    .then((user) => res.status(200).json(user))
-    .catch((err) => res.status(500).send(err))
+    .then(user => res.status(200).json(user))
+    .catch(err => res.status(500).send(err))
 })
 
 //update user account
 router.put('/update/:id', async (req, res) => {
   await prisma.users
-    .update({
+    .findUnique({
       where: {
         id: req.params.id
       },
-      data: req.body
+      select: {
+        email: true,
+        password: true
+      }
     })
-    .catch((err) => res.status(500).send(err))
-
-  res.status(200).send('updating user')
+    .then(async user => {
+      if (req.body.email === undefined) {
+        bcrypt.compare(req.body.oldPassword, user.password).then(async result => {
+          if (result) {
+            bcrypt.hash(req.body.newPassword, saltRounds).then(async hash => {
+              await prisma.users
+                .update({
+                  where: {
+                    id: req.params.id
+                  },
+                  data: {
+                    password: hash
+                  }
+                })
+                .then(() => res.status(200).send('password updated'))
+                .catch(err => res.status(500).send(err))
+            })
+          } else {
+            res.status(401).send('wrong old password')
+          }
+        })
+      } else {
+        await prisma.users
+          .update({
+            where: {
+              id: req.params.id
+            },
+            data: {
+              email: req.body.email
+            }
+          })
+          .then(updatedUser =>
+            res.status(200).send({
+              newEmail: updatedUser.email
+            })
+          )
+          .catch(err => res.status(500).send(err))
+      }
+    })
+    .catch(err => res.status(500).send(err))
 })
 
 //delete user account
@@ -148,7 +190,7 @@ router.delete('/delete/:id', async (req, res) => {
       }
     })
     .then(() => res.status(200).send('Account deleted'))
-    .catch((err) => res.status(500).send(err))
+    .catch(err => res.status(500).send(err))
 })
 
 module.exports = router
