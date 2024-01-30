@@ -140,7 +140,17 @@ router.put('/update/:id', async (req, res) => {
       }
     })
     .then(async user => {
-      if (req.body.email === undefined) {
+      if (req.body.finished_intro) {
+        await prisma.users
+          .update({
+            where: {
+              id: req.params.id
+            },
+            data: req.body
+          })
+          .then(() => res.status(200).send('Successfully updated'))
+          .catch(err => res.status(500).send(err))
+      } else {
         bcrypt.compare(req.body.oldPassword, user.password).then(async result => {
           if (result) {
             bcrypt.hash(req.body.newPassword, saltRounds).then(async hash => {
@@ -160,22 +170,6 @@ router.put('/update/:id', async (req, res) => {
             res.status(401).send('wrong old password')
           }
         })
-      } else {
-        await prisma.users
-          .update({
-            where: {
-              id: req.params.id
-            },
-            data: {
-              email: req.body.email
-            }
-          })
-          .then(updatedUser =>
-            res.status(200).send({
-              newEmail: updatedUser.email
-            })
-          )
-          .catch(err => res.status(500).send(err))
       }
     })
     .catch(err => res.status(500).send(err))
