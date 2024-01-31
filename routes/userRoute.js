@@ -2,13 +2,14 @@ const express = require('express')
 const { PrismaClient, Prisma } = require('@prisma/client')
 const crypto = require('crypto')
 const bcrypt = require('bcrypt')
+const { auth } = require('../middlewares')
 const saltRounds = 10
 
 const router = express.Router()
 const prisma = new PrismaClient()
 
 // create account
-router.post('/create', async (req, res) => {
+router.post('/signup', async (req, res) => {
   bcrypt.hash(req.body.password, saltRounds).then(async hash => {
     await prisma.users
       .create({
@@ -32,7 +33,7 @@ router.post('/create', async (req, res) => {
           }
         } else {
           console.log(err)
-          res.status(500).send(err)
+          res.status(500).send('Internal server error')
         }
       })
   })
@@ -57,7 +58,7 @@ router.post('/login', async (req, res) => {
       }
     })
     .then(async user => {
-      if (user !== null) {
+      if (user) {
         // if user exists
         bcrypt.compare(req.body.password, user.password).then(async result => {
           if (result) {
@@ -74,7 +75,6 @@ router.post('/login', async (req, res) => {
                 .then(() => {
                   res.status(200).json({
                     userId: user.id,
-                    email: user.email,
                     token: token,
                     finishedPreTest: user.finished_pre_test,
                     finishedPostTest: user.finished_post_test,
@@ -82,7 +82,7 @@ router.post('/login', async (req, res) => {
                     section: user.section
                   })
                 })
-                .catch(err => res.status(500).send(err))
+                .catch(err => res.status(500).send('Internal server error'))
             } else {
               res.status(401).json({
                 message: 'Account not yet approved'
@@ -100,42 +100,17 @@ router.post('/login', async (req, res) => {
         })
       }
     })
-    .catch(err => res.status(500).send(err))
-})
-
-//delete token on logout
-router.delete('/logout', async (req, res) => {
-  await prisma.tokens
-    .delete({
-      where: {
-        token: req.get('Authorization').split(' ')[1]
-      }
-    })
-    .then(() => res.status(200).send('Token deleted'))
-    .catch(err => res.status(400).send(err))
-})
-
-//get user details
-router.get('/get-user/:id', async (req, res) => {
-  await prisma.users
-    .findUnique({
-      where: {
-        id: req.params.id
-      }
-    })
-    .then(user => res.status(200).json(user))
-    .catch(err => res.status(500).send(err))
+    .catch(err => res.status(500).send('Internal server error'))
 })
 
 //update user account
-router.put('/update/:id', async (req, res) => {
+router.put('/:id', auth, async (req, res) => {
   await prisma.users
     .findUnique({
       where: {
         id: req.params.id
       },
       select: {
-        email: true,
         password: true
       }
     })
@@ -149,7 +124,7 @@ router.put('/update/:id', async (req, res) => {
             data: req.body
           })
           .then(() => res.status(200).send('Successfully updated'))
-          .catch(err => res.status(500).send(err))
+          .catch(err => res.status(500).send('Internal server error'))
       } else {
         bcrypt.compare(req.body.oldPassword, user.password).then(async result => {
           if (result) {
@@ -164,7 +139,7 @@ router.put('/update/:id', async (req, res) => {
                   }
                 })
                 .then(() => res.status(200).send('password updated'))
-                .catch(err => res.status(500).send(err))
+                .catch(err => res.status(500).send('Internal server error'))
             })
           } else {
             res.status(401).send('wrong old password')
@@ -172,11 +147,23 @@ router.put('/update/:id', async (req, res) => {
         })
       }
     })
-    .catch(err => res.status(500).send(err))
+    .catch(err => res.status(500).send('Internal server error'))
+})
+
+//delete token on logout
+router.delete('/logout', auth, async (req, res) => {
+  await prisma.tokens
+    .delete({
+      where: {
+        token: req.headers.authorization.split(' ')[1]
+      }
+    })
+    .then(() => res.status(200).send('Token deleted'))
+    .catch(err => res.status(500).send('Internal server error'))
 })
 
 //delete user account
-router.delete('/delete/:id', async (req, res) => {
+router.delete('/:id', auth, async (req, res) => {
   await prisma.users
     .delete({
       where: {
@@ -184,7 +171,28 @@ router.delete('/delete/:id', async (req, res) => {
       }
     })
     .then(() => res.status(200).send('Account deleted'))
-    .catch(err => res.status(500).send(err))
+    .catch(err => res.status(500).send('Internal server error'))
 })
+
+//get user details
+// router.get('/get-user/:id', async (req, res) => {
+//   await prisma.users
+//     .findUnique({
+//       where: {
+//         id: req.params.id
+//       },
+//       select: {
+//         id: true,
+//         email: true,
+//         name: true,
+//         section: true,
+//         finished_intro: true,
+//         finished_pre_test: true,
+//         finished_post_test: true
+//       }
+//     })
+//     .then(user => res.status(200).send(user))
+//     .catch(err => res.status(500).send('Internal server error'))
+// })
 
 module.exports = router

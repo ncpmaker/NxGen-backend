@@ -1,15 +1,14 @@
 const express = require('express')
 const cors = require('cors')
 const app = express()
-const port = 3000
 require('dotenv').config({ path: `.env.${process.env.NODE_ENV}` })
+const port = 3000
+const version = '/api/v2'
 
 //routes
 const userRoute = require('./routes/userRoute')
-const authRoute = require('./routes/authRoute')
 const caseScenariosRoute = require('./routes/caseScenariosRoute')
-const caseScenarioHistoryRoute = require('./routes/caseScenarioHistoryRoute')
-const testHistoryRoute = require('./routes/testHistoryRoute')
+const historyRoute = require('./routes/historyRoute')
 const enablePostTestRoute = require('./routes/enablePostTestRoute')
 const adminRoute = require('./routes/adminRoute')
 
@@ -19,13 +18,11 @@ app.use(
   })
 )
 app.use(express.json())
-app.use('/user', userRoute)
-app.use('/auth', authRoute)
-app.use('/case-scenarios', caseScenariosRoute)
-app.use('/case-scenario-history', caseScenarioHistoryRoute)
-app.use('/test-history', testHistoryRoute)
-app.use('/enable-post-test', enablePostTestRoute)
-app.use('/admin', adminRoute)
+app.use(`${version}/user`, userRoute)
+app.use(`${version}/case-scenarios`, caseScenariosRoute)
+app.use(`${version}/history`, historyRoute)
+app.use(`${version}/enable-post-test`, enablePostTestRoute)
+app.use(`${version}/admin`, adminRoute)
 
 app.get('/', (req, res) => {
   res.send('Hello World!')

@@ -1,10 +1,10 @@
 const express = require('express')
 const { PrismaClient, Prisma } = require('@prisma/client')
-
+const { auth } = require('../middlewares')
 const router = express.Router()
 const prisma = new PrismaClient()
 
-router.post('/create', async (req, res) => {
+router.post('/', auth, async (req, res) => {
   await prisma.caseScenarios
     .create({
       data: req.body
@@ -12,13 +12,13 @@ router.post('/create', async (req, res) => {
     .then(() => {
       res.status(200).json({
         success: true,
-        message: 'Successfully created a case scenario!!'
+        message: 'Successfully created a case scenario!'
       })
     })
-    .catch((err) => res.status(500).send(err))
+    .catch(err => res.status(500).send('Internal server error'))
 })
 
-router.get('/get-all/:category', async (req, res) => {
+router.get('/:category', auth, async (req, res) => {
   await prisma.caseScenarios
     .findMany({
       where: {
@@ -31,22 +31,22 @@ router.get('/get-all/:category', async (req, res) => {
         created_at: 'asc'
       }
     })
-    .then((caseScenarios) => res.status(200).json(caseScenarios))
-    .catch((err) => res.status(500).send(err))
+    .then(caseScenarios => res.status(200).json(caseScenarios))
+    .catch(err => res.status(500).send('Internal server error'))
 })
 
-router.get('/get/:category/:id', async (req, res) => {
+router.get('/:category/:id', auth, async (req, res) => {
   await prisma.caseScenarios
     .findUnique({
       where: {
         id: req.params.id
       }
     })
-    .then((caseScenario) => res.status(200).json(caseScenario))
-    .catch((err) => res.status(500).send(err))
+    .then(caseScenario => res.status(200).json(caseScenario))
+    .catch(err => res.status(500).send('Internal server error'))
 })
 
-router.put('/edit/:category/:id', async (req, res) => {
+router.put('/:category/:id', auth, async (req, res) => {
   await prisma.caseScenarios
     .update({
       where: {
@@ -58,10 +58,10 @@ router.put('/edit/:category/:id', async (req, res) => {
     .then(() => {
       res.status(200).send('Case scenario updated.')
     })
-    .catch((err) => res.status(500).send(err))
+    .catch(err => res.status(500).send('Internal server error'))
 })
 
-router.delete('/delete/:category/:id', async (req, res) => {
+router.delete('/:category/:id', auth, async (req, res) => {
   await prisma.caseScenarios
     .delete({
       where: {
@@ -72,7 +72,7 @@ router.delete('/delete/:category/:id', async (req, res) => {
     .then(() => {
       res.status(200).send('Case scenario deleted.')
     })
-    .catch((err) => res.status(500).send(err))
+    .catch(err => res.status(500).send('Internal server error'))
 })
 
 module.exports = router

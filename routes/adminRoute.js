@@ -1,5 +1,6 @@
 const express = require('express')
 const { PrismaClient, Prisma } = require('@prisma/client')
+const { auth } = require('../middlewares')
 const crypto = require('crypto')
 const bcrypt = require('bcrypt')
 
@@ -8,7 +9,7 @@ const prisma = new PrismaClient()
 
 router.post('/login', (req, res) => {
   if (req.body.username === process.env.ADMIN_USERNAME) {
-    bcrypt.compare(req.body.password, process.env.ADMIN_PASSWORD).then(async (result) => {
+    bcrypt.compare(req.body.password, process.env.ADMIN_PASSWORD).then(async result => {
       if (result) {
         const token = crypto.randomBytes(64).toString('hex')
 
@@ -23,7 +24,7 @@ router.post('/login', (req, res) => {
               adminToken: token
             })
           })
-          .catch((err) => res.status(500).send(err))
+          .catch(err => res.status(500).send(err))
       } else {
         res.status(401).json({
           message: 'Wrong password'
@@ -38,7 +39,7 @@ router.post('/login', (req, res) => {
 })
 
 //delete token on logout
-router.delete('/logout', async (req, res) => {
+router.delete('/logout', auth, async (req, res) => {
   await prisma.adminTokens
     .delete({
       where: {
@@ -46,7 +47,7 @@ router.delete('/logout', async (req, res) => {
       }
     })
     .then(() => res.status(200).send('Token deleted'))
-    .catch((err) => res.status(400).send(err))
+    .catch(err => res.status(400).send(err))
 })
 
 module.exports = router
