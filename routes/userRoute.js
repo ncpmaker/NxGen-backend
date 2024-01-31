@@ -48,6 +48,7 @@ router.post('/login', async (req, res) => {
       },
       select: {
         id: true,
+        name: true,
         email: true,
         password: true,
         approved: true,
@@ -76,6 +77,7 @@ router.post('/login', async (req, res) => {
                   res.status(200).json({
                     userId: user.id,
                     token: token,
+                    name: user.name,
                     finishedPreTest: user.finished_pre_test,
                     finishedPostTest: user.finished_post_test,
                     finishedIntro: user.finished_intro,
