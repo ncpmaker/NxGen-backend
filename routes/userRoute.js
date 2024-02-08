@@ -32,7 +32,6 @@ router.post('/signup', async (req, res) => {
             res.status(409).send(err)
           }
         } else {
-          console.log(err)
           res.status(500).send('Internal server error')
         }
       })

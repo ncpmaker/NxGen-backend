@@ -39,7 +39,6 @@ router.post('/case-scenario/', auth, async (req, res) => {
           })
         })
         .catch(err => {
-          console.log(err)
           res.status(500).send(err)
         })
     })
@@ -47,7 +46,6 @@ router.post('/case-scenario/', auth, async (req, res) => {
 })
 
 router.get('/case-scenario/search', auth, async (req, res) => {
-  console.log(req.query)
   const searchFilter = {
     AND: [
       {
@@ -254,7 +252,6 @@ router.get('/case-scenario/student/:userId', auth, async (req, res) => {
       res.status(200).send(histories)
     })
     .catch(err => {
-      console.log(err)
       res.status(500).send(err)
     })
 })
@@ -400,7 +397,6 @@ router.get('/test/search', auth, async (req, res) => {
         res.status(200).send(history)
       })
       .catch(err => {
-        console.log(err)
         res.status(500).send(err)
       })
   }
