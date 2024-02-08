@@ -228,6 +228,7 @@ router.get('/case-scenario/student/:userId', auth, async (req, res) => {
       },
       select: {
         id: true,
+        case_id: true,
         date_taken: true,
         case_scenarios: {
           select: {
@@ -245,6 +246,7 @@ router.get('/case-scenario/student/:userId', auth, async (req, res) => {
         histories.push({
           id: item.id,
           category: item.case_scenarios.category,
+          caseId: item.case_id,
           dateTaken: item.date_taken
         })
       })

@@ -10,10 +10,7 @@ router.post('/', auth, async (req, res) => {
       data: req.body
     })
     .then(() => {
-      res.status(200).json({
-        success: true,
-        message: 'Successfully created a case scenario!'
-      })
+      res.status(200).send('Successfully created a case scenario!')
     })
     .catch(err => res.status(500).send('Internal server error'))
 })
@@ -31,7 +28,7 @@ router.get('/:category', auth, async (req, res) => {
         created_at: 'asc'
       }
     })
-    .then(caseScenarios => res.status(200).json(caseScenarios))
+    .then(caseScenarios => res.status(200).send(caseScenarios))
     .catch(err => res.status(500).send('Internal server error'))
 })
 
@@ -42,7 +39,7 @@ router.get('/:category/:id', auth, async (req, res) => {
         id: req.params.id
       }
     })
-    .then(caseScenario => res.status(200).json(caseScenario))
+    .then(caseScenario => res.status(200).send(caseScenario))
     .catch(err => res.status(500).send('Internal server error'))
 })
 

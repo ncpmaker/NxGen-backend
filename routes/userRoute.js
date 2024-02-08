@@ -21,7 +21,7 @@ router.post('/signup', async (req, res) => {
         }
       })
       .then(() => {
-        res.status(200).json({
+        res.status(200).send({
           success: true,
           message: 'Successfully created an account!'
         })
@@ -74,7 +74,7 @@ router.post('/login', async (req, res) => {
                   }
                 })
                 .then(() => {
-                  res.status(200).json({
+                  res.status(200).send({
                     userId: user.id,
                     token: token,
                     name: user.name,
@@ -86,20 +86,14 @@ router.post('/login', async (req, res) => {
                 })
                 .catch(err => res.status(500).send('Internal server error'))
             } else {
-              res.status(401).json({
-                message: 'Account not yet approved'
-              })
+              res.status(401).send('Account not yet approved')
             }
           } else {
-            res.status(401).json({
-              message: 'Wrong password!'
-            })
+            res.status(401).send('Wrong password!')
           }
         })
       } else {
-        res.status(400).json({
-          message: "Account doesn't exist!"
-        })
+        res.status(400).send("Account doesn't exist!")
       }
     })
     .catch(err => res.status(500).send('Internal server error'))
