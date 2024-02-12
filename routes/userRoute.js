@@ -133,7 +133,16 @@ router.put('/:id', auth, async (req, res) => {
                     password: hash
                   }
                 })
-                .then(() => res.status(200).send('password updated'))
+                .then(async () => {
+                  await prisma.tokens
+                    .deleteMany({
+                      where: {
+                        user_id: req.params.id
+                      }
+                    })
+                    .then(() => res.status(200).send('password updated'))
+                    .catch(err => res.status(500).send('Internal server error'))
+                })
                 .catch(err => res.status(500).send('Internal server error'))
             })
           } else {
