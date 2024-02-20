@@ -13,7 +13,7 @@ router.post('/', auth, async (req, res) => {
       res.status(200).send('Successfully created a case scenario!')
     })
     .catch(err => {
-      console / log(err)
+      console.log(err)
       res.status(500).send('Internal server error')
     })
 })
