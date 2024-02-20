@@ -69,7 +69,6 @@ model CaseScenarios {
   assessment            Json
   nursing_diagnosis     Json
   planning              Json
-  intervention          Json
   created_at            DateTime              @default(now())
   case_scenario_history CaseScenarioHistory[]
 }

@@ -12,7 +12,9 @@ router.post('/', auth, async (req, res) => {
     .then(() => {
       res.status(200).send('Successfully created a case scenario!')
     })
-    .catch(err => res.status(500).send('Internal server error'))
+    .catch(err => {
+      res.status(500).send('Internal server error')
+    })
 })
 
 router.get('/:category', auth, async (req, res) => {

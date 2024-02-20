@@ -97,6 +97,7 @@ router.get('/case-scenario/search', auth, async (req, res) => {
     id: true,
     date_taken: true,
     times_taken: true,
+    answers: true,
     user: {
       select: {
         name: true,
@@ -136,7 +137,8 @@ router.get('/case-scenario/search', auth, async (req, res) => {
             dateTaken: item.date_taken,
             timesTaken: item.times_taken,
             name: item.user.name,
-            section: item.user.section
+            section: item.user.section,
+            answers: item.answers
           })
         })
 
@@ -156,6 +158,7 @@ router.get('/case-scenario/search', auth, async (req, res) => {
         let histories = []
 
         data.forEach(item => {
+          console.log(item)
           histories.push({
             id: item.id,
             caseId: item.case_scenarios.id,
@@ -163,7 +166,8 @@ router.get('/case-scenario/search', auth, async (req, res) => {
             dateTaken: item.date_taken,
             timesTaken: item.times_taken,
             name: item.user.name,
-            section: item.user.section
+            section: item.user.section,
+            answers: item.answers
           })
         })
 
