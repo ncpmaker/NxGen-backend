@@ -1,23 +1,23 @@
-const express = require('express')
-const { PrismaClient, Prisma } = require('@prisma/client')
-const { auth } = require('../middlewares')
+const express = require("express");
+const { PrismaClient, Prisma } = require("@prisma/client");
+const { auth } = require("../middlewares");
 
-const router = express.Router()
-const prisma = new PrismaClient()
+const router = express.Router();
+const prisma = new PrismaClient();
 
 function twoDecimals(number) {
-  return Math.round((number + Number.EPSILON) * 100) / 100
+  return Math.round((number + Number.EPSILON) * 100) / 100;
 }
 
-router.post('/case-scenario/', auth, async (req, res) => {
+router.post("/case-scenario/", auth, async (req, res) => {
   await prisma.caseScenarioHistory
     .count({
       where: {
         user_id: req.body.userId,
-        case_id: req.body.caseId
-      }
+        case_id: req.body.caseId,
+      },
     })
-    .then(async count => {
+    .then(async (count) => {
       await prisma.caseScenarioHistory
         .create({
           data: {
@@ -30,22 +30,22 @@ router.post('/case-scenario/', auth, async (req, res) => {
             planning_score: twoDecimals(req.body.planningScore),
             intervention_score: twoDecimals(req.body.interventionScore),
             evaluation_score: twoDecimals(req.body.evaluationScore),
-            overall_score: twoDecimals(req.body.overallScore)
-          }
+            overall_score: twoDecimals(req.body.overallScore),
+          },
         })
-        .then(history => {
+        .then((history) => {
           res.status(200).json({
-            historyId: history.id
-          })
+            historyId: history.id,
+          });
         })
-        .catch(err => {
-          res.status(500).send(err)
-        })
+        .catch((err) => {
+          res.status(500).send(err);
+        });
     })
-    .catch(err => res.status(500).send(err))
-})
+    .catch((err) => res.status(500).send(err));
+});
 
-router.get('/case-scenario/search', auth, async (req, res) => {
+router.get("/case-scenario/search", auth, async (req, res) => {
   const searchFilter = {
     AND: [
       {
@@ -54,44 +54,44 @@ router.get('/case-scenario/search', auth, async (req, res) => {
             user: {
               name: {
                 contains: req.query.search,
-                mode: 'insensitive'
-              }
-            }
+                mode: "insensitive",
+              },
+            },
           },
           {
             case_scenarios: {
               id: {
-                contains: req.query.search
-              }
-            }
-          }
-        ]
+                contains: req.query.search,
+              },
+            },
+          },
+        ],
       },
       {
         user: {
           section: {
-            ...(req.query.section !== 'All'
+            ...(req.query.section !== "All"
               ? {
-                  contains: req.query.section
+                  contains: req.query.section,
                 }
-              : {})
-          }
-        }
+              : {}),
+          },
+        },
       },
       {
         case_scenarios: {
           category: {
-            ...(req.query.category !== 'All'
+            ...(req.query.category !== "All"
               ? {
                   contains: req.query.category,
-                  mode: 'insensitive'
+                  mode: "insensitive",
                 }
-              : {})
-          }
-        }
-      }
-    ]
-  }
+              : {}),
+          },
+        },
+      },
+    ],
+  };
 
   const select = {
     id: true,
@@ -101,16 +101,16 @@ router.get('/case-scenario/search', auth, async (req, res) => {
     user: {
       select: {
         name: true,
-        section: true
-      }
+        section: true,
+      },
     },
     case_scenarios: {
       select: {
         id: true,
-        category: true
-      }
-    }
-  }
+        category: true,
+      },
+    },
+  };
 
   if (req.query.cursor !== undefined) {
     await prisma.caseScenarioHistory
@@ -118,18 +118,18 @@ router.get('/case-scenario/search', auth, async (req, res) => {
         where: searchFilter,
         select: select,
         orderBy: {
-          date_taken: 'desc'
+          date_taken: "desc",
         },
         take: 50,
         skip: 1,
         cursor: {
-          id: !req.query.cursor ? null : req.query.cursor
-        }
+          id: !req.query.cursor ? null : req.query.cursor,
+        },
       })
-      .then(data => {
-        let histories = []
+      .then((data) => {
+        let histories = [];
 
-        data.forEach(item => {
+        data.forEach((item) => {
           histories.push({
             id: item.id,
             caseId: item.case_scenarios.id,
@@ -138,27 +138,26 @@ router.get('/case-scenario/search', auth, async (req, res) => {
             timesTaken: item.times_taken,
             name: item.user.name,
             section: item.user.section,
-            answers: item.answers
-          })
-        })
+            answers: item.answers,
+          });
+        });
 
-        res.status(200).send(histories)
-      })
+        res.status(200).send(histories);
+      });
   } else {
     await prisma.caseScenarioHistory
       .findMany({
         where: searchFilter,
         select: select,
         orderBy: {
-          date_taken: 'desc'
+          date_taken: "desc",
         },
-        take: 50
+        take: 50,
       })
-      .then(data => {
-        let histories = []
+      .then((data) => {
+        let histories = [];
 
-        data.forEach(item => {
-          console.log(item)
+        data.forEach((item) => {
           histories.push({
             id: item.id,
             caseId: item.case_scenarios.id,
@@ -167,44 +166,44 @@ router.get('/case-scenario/search', auth, async (req, res) => {
             timesTaken: item.times_taken,
             name: item.user.name,
             section: item.user.section,
-            answers: item.answers
-          })
-        })
+            answers: item.answers,
+          });
+        });
 
-        res.status(200).send(histories)
+        res.status(200).send(histories);
       })
-      .catch(err => res.status(500).send(err))
+      .catch((err) => res.status(500).send(err));
   }
-})
+});
 
-router.get('/case-scenario/:id', auth, async (req, res) => {
+router.get("/case-scenario/:id", auth, async (req, res) => {
   await prisma.caseScenarioHistory
     .findUnique({
       where: {
-        id: req.params.id
+        id: req.params.id,
       },
       include: {
         user: {
           select: {
-            name: true
-          }
+            name: true,
+          },
         },
         case_scenarios: {
           select: {
             category: true,
-            planning: true
-          }
-        }
-      }
+            planning: true,
+          },
+        },
+      },
     })
-    .then(data => {
+    .then((data) => {
       res.status(200).json({
         name: data.user.name,
         caseId: data.case_id,
         answers: {
           ...data.answers,
           shortTermGoalsDesc: data.case_scenarios.planning.shortTermGoalsDesc,
-          longTermGoalsDesc: data.case_scenarios.planning.longTermGoalsDesc
+          longTermGoalsDesc: data.case_scenarios.planning.longTermGoalsDesc,
         },
         category: data.case_scenarios.category,
         dateTaken: data.date_taken,
@@ -215,18 +214,18 @@ router.get('/case-scenario/:id', auth, async (req, res) => {
           planning: data.planning_score,
           intervention: data.intervention_score,
           evaluation: data.evaluation_score,
-          overall: data.overall_score
-        }
-      })
+          overall: data.overall_score,
+        },
+      });
     })
-    .catch(err => res.status(500).send(err))
-})
+    .catch((err) => res.status(500).send(err));
+});
 
-router.get('/case-scenario/student/:userId', auth, async (req, res) => {
+router.get("/case-scenario/student/:userId", auth, async (req, res) => {
   await prisma.caseScenarioHistory
     .findMany({
       where: {
-        user_id: req.params.userId
+        user_id: req.params.userId,
       },
       select: {
         id: true,
@@ -234,49 +233,49 @@ router.get('/case-scenario/student/:userId', auth, async (req, res) => {
         date_taken: true,
         case_scenarios: {
           select: {
-            category: true
-          }
-        }
+            category: true,
+          },
+        },
       },
       orderBy: {
-        date_taken: 'desc'
-      }
+        date_taken: "desc",
+      },
     })
-    .then(data => {
-      let histories = []
-      data.forEach(item => {
+    .then((data) => {
+      let histories = [];
+      data.forEach((item) => {
         histories.push({
           id: item.id,
           category: item.case_scenarios.category,
           caseId: item.case_id,
-          dateTaken: item.date_taken
-        })
-      })
+          dateTaken: item.date_taken,
+        });
+      });
 
-      res.status(200).send(histories)
+      res.status(200).send(histories);
     })
-    .catch(err => {
-      res.status(500).send(err)
-    })
-})
+    .catch((err) => {
+      res.status(500).send(err);
+    });
+});
 
-router.post('/test/', async (req, res) => {
+router.post("/test/", async (req, res) => {
   await prisma.users
     .update({
       where: {
-        id: req.body.userId
+        id: req.body.userId,
       },
       data: {
-        ...(req.body.testType === 'PRETEST'
+        ...(req.body.testType === "PRETEST"
           ? {
-              finished_pre_test: true
+              finished_pre_test: true,
             }
-          : req.body.testType === 'POSTTEST'
-          ? {
-              finished_post_test: true
-            }
-          : {})
-      }
+          : req.body.testType === "POSTTEST"
+            ? {
+                finished_post_test: true,
+              }
+            : {}),
+      },
     })
     .then(async () => {
       await prisma.testHistory.create({
@@ -284,48 +283,48 @@ router.post('/test/', async (req, res) => {
           user_id: req.body.userId,
           test_type: req.body.testType,
           answers: req.body.answers,
-          score: req.body.score
-        }
-      })
+          score: req.body.score,
+        },
+      });
 
-      res.status(200).send('Test history created successfully')
+      res.status(200).send("Test history created successfully");
     })
-    .catch(err => res.status(500).send(err))
-})
+    .catch((err) => res.status(500).send(err));
+});
 
-router.get('/test/search', auth, async (req, res) => {
+router.get("/test/search", auth, async (req, res) => {
   const searchFilter = {
     AND: [
       {
         user: {
           name: {
             contains: req.query.search,
-            mode: 'insensitive'
-          }
-        }
+            mode: "insensitive",
+          },
+        },
       },
       {
         user: {
           section: {
-            ...(req.query.section !== 'All'
+            ...(req.query.section !== "All"
               ? {
-                  contains: req.query.section
+                  contains: req.query.section,
                 }
-              : {})
-          }
-        }
+              : {}),
+          },
+        },
       },
       {
         test_type: {
-          ...(req.query.testType !== 'All'
+          ...(req.query.testType !== "All"
             ? {
-                in: [req.query.testType]
+                in: [req.query.testType],
               }
-            : {})
-        }
-      }
-    ]
-  }
+            : {}),
+        },
+      },
+    ],
+  };
 
   if (req.query.cursor !== undefined) {
     await prisma.testHistory
@@ -335,23 +334,23 @@ router.get('/test/search', auth, async (req, res) => {
           user: {
             select: {
               name: true,
-              section: true
-            }
-          }
+              section: true,
+            },
+          },
         },
         orderBy: {
-          date_taken: 'desc'
+          date_taken: "desc",
         },
         take: 50,
         skip: 1,
         cursor: {
-          id: !req.query.cursor ? null : req.query.cursor
-        }
+          id: !req.query.cursor ? null : req.query.cursor,
+        },
       })
-      .then(data => {
-        let history = []
+      .then((data) => {
+        let history = [];
 
-        data.forEach(entry => {
+        data.forEach((entry) => {
           history.push({
             id: entry.id,
             testType: entry.test_type,
@@ -359,13 +358,13 @@ router.get('/test/search', auth, async (req, res) => {
             dateTaken: entry.date_taken,
             answers: entry.answers,
             name: entry.user.name,
-            section: entry.user.section
-          })
-        })
+            section: entry.user.section,
+          });
+        });
 
-        res.status(200).send(history)
+        res.status(200).send(history);
       })
-      .catch(err => res.status(500).send(err))
+      .catch((err) => res.status(500).send(err));
   } else {
     await prisma.testHistory
       .findMany({
@@ -374,19 +373,19 @@ router.get('/test/search', auth, async (req, res) => {
           user: {
             select: {
               name: true,
-              section: true
-            }
-          }
+              section: true,
+            },
+          },
         },
         orderBy: {
-          date_taken: 'desc'
+          date_taken: "desc",
         },
-        take: 50
+        take: 50,
       })
-      .then(data => {
-        let history = []
+      .then((data) => {
+        let history = [];
 
-        data.forEach(entry => {
+        data.forEach((entry) => {
           history.push({
             id: entry.id,
             testType: entry.test_type,
@@ -394,30 +393,30 @@ router.get('/test/search', auth, async (req, res) => {
             dateTaken: entry.date_taken,
             answers: entry.answers,
             name: entry.user.name,
-            section: entry.user.section
-          })
-        })
+            section: entry.user.section,
+          });
+        });
 
-        res.status(200).send(history)
+        res.status(200).send(history);
       })
-      .catch(err => {
-        res.status(500).send(err)
-      })
+      .catch((err) => {
+        res.status(500).send(err);
+      });
   }
-})
+});
 
-router.get('/test/:userId', async (req, res) => {
+router.get("/test/:userId", async (req, res) => {
   await prisma.testHistory
     .findMany({
       where: {
-        user_id: req.params.userId
+        user_id: req.params.userId,
       },
       select: {
         test_type: true,
-        score: true
-      }
+        score: true,
+      },
     })
-    .then(data => res.status(200).send(data))
-    .catch(err => res.status(500).send(err))
-})
-module.exports = router
+    .then((data) => res.status(200).send(data))
+    .catch((err) => res.status(500).send(err));
+});
+module.exports = router;
