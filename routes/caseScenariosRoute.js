@@ -62,7 +62,7 @@ router.put("/:id", auth, async (req, res) => {
     .catch((err) => res.status(500).send("Internal server error"));
 });
 
-router.delete(":id", auth, async (req, res) => {
+router.delete("/:id", auth, async (req, res) => {
   await prisma.caseScenarios
     .delete({
       where: {
