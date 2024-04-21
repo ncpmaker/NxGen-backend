@@ -39,10 +39,14 @@ router.post("/case-scenario/", auth, async (req, res) => {
           });
         })
         .catch((err) => {
+          console.log(err);
           res.status(500).send(err);
         });
     })
-    .catch((err) => res.status(500).send(err));
+    .catch((err) => {
+      console.log(err);
+      res.status(500).send(err);
+    });
 });
 
 router.get("/case-scenario/search", auth, async (req, res) => {
@@ -271,10 +275,10 @@ router.post("/test/", async (req, res) => {
               finished_pre_test: true,
             }
           : req.body.testType === "POSTTEST"
-            ? {
-                finished_post_test: true,
-              }
-            : {}),
+          ? {
+              finished_post_test: true,
+            }
+          : {}),
       },
     })
     .then(async () => {
@@ -289,7 +293,10 @@ router.post("/test/", async (req, res) => {
 
       res.status(200).send("Test history created successfully");
     })
-    .catch((err) => res.status(500).send(err));
+    .catch((err) => {
+      console.log(err);
+      res.status(500).send(err);
+    });
 });
 
 router.get("/test/search", auth, async (req, res) => {
