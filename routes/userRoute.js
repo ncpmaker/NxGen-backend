@@ -40,7 +40,6 @@ router.post("/signup", async (req, res) => {
 
 //log account
 router.post("/login", async (req, res) => {
-  console.log(req.body.password);
   await prisma.users
     .findUnique({
       where: {
@@ -60,7 +59,6 @@ router.post("/login", async (req, res) => {
     })
     .then(async (user) => {
       if (user) {
-        console.log(user.password);
         // if user exists
         bcrypt
           .compare(req.body.password, user.password)
@@ -87,9 +85,10 @@ router.post("/login", async (req, res) => {
                       section: user.section,
                     });
                   })
-                  .catch((err) =>
-                    res.status(500).send("Internal server error")
-                  );
+                  .catch((err) => {
+                    console.log(req.body.password + " - " + user.password);
+                    res.status(500).send("Internal server error");
+                  });
               } else {
                 res.status(401).send("Account not yet approved");
               }
