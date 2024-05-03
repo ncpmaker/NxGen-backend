@@ -85,11 +85,9 @@ router.post("/login", async (req, res) => {
                       section: user.section,
                     });
                   })
-                  .catch((err) => {
-                    console.log(err);
-                    console.log(req.body.password + " - " + user.password);
-                    res.status(500).send("Internal server error");
-                  });
+                  .catch((err) =>
+                    res.status(500).send("Internal server error")
+                  );
               } else {
                 res.status(401).send("Account not yet approved");
               }
